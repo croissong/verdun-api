@@ -1,0 +1,36 @@
+directive @cacheControl(
+  maxAge: Int,
+  scope: CacheControlScope
+) on OBJECT | FIELD_DEFINITION
+
+enum CacheControlScope {
+  PUBLIC
+  PRIVATE
+}
+
+type MetricValue @cacheControl(maxAge: 240) {
+  value: Int
+}
+
+type ContainerStatus @cacheControl(maxAge: 240) {
+  container: String
+  image: String
+}
+
+type PodStatus @cacheControl(maxAge: 240) {
+  pod: String
+  namespace: String
+  label_app: String
+  ready: MetricValue
+  containers: [ContainerStatus]
+  initContainers: ContainerStatus
+}
+
+input Label {
+  key: String
+  value: String
+}
+
+type Query {
+  podStatus(labels: [Label], namespaces: [String]): [PodStatus] @cacheControl(maxAge: 240)
+}
