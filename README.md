@@ -1,3 +1,3 @@
-# graphql-gateway
+# Verdun api
 
-graphql-gateway
+Initialized with https://github.com/bitjson/typescript-starter
