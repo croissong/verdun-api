@@ -4,7 +4,10 @@ import { pluck } from 'ramda';
 export class PrometheusAPI extends RESTDataSource {
   constructor() {
     super();
-    this.baseURL = process.env.NODE_ENV === 'production' ? 'prometheus-operated.prometheus.svc' : 'https://prometheus.patrician.gold/api/v1';
+    this.baseURL =
+      process.env.NODE_ENV === 'production'
+        ? 'http://prometheus-prometheus-oper-prometheus.prometheus.svc:9090/api/v1'
+        : 'https://prometheus.patrician.gold/api/v1';
   }
 
   willSendRequest(request: RequestOptions) {
@@ -16,6 +19,13 @@ export class PrometheusAPI extends RESTDataSource {
     const res = await this.runQuery(query);
     const metric = pluck('metric', res.data.result);
     return metric;
+  }
+
+  async getInitContainers(pod: string) {
+    const query = `kube_pod_init_container_info{pod="${pod}"}`;
+    const res = await this.runQuery(query);
+    const metric = pluck('metric', res.data.result);
+    return metric || [];
   }
 
   async getPodInfo(labels: Label[] = [], namespaces?: string[]) {

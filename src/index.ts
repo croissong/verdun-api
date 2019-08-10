@@ -1,30 +1,29 @@
-import { ApolloServer } from 'apollo-server';
+import Koa from 'koa';
+import { ApolloServer } from 'apollo-server-koa';
 import responseCachePlugin from 'apollo-server-plugin-response-cache';
 import { PrometheusAPI } from './lib/datasource';
-import { importSchema } from 'graphql-import'
+import { importSchema } from 'graphql-import';
+import { getLogger } from './lib/logger';
 
-const typeDefs = importSchema('src/schema.graphql')
+const logger = getLogger(__filename);
 
-// Resolvers define the technique for fetching the types in the
-// schema.  We'll retrieve books from the "books" array above.
+const typeDefs = importSchema('src/schema.graphql');
+
 const resolvers = {
   Query: {
-    podStatus: async (_source, {labels, namespaces}, { dataSources }) =>
-      dataSources.prometheusAPI.getPodInfo(labels, namespaces),
+    podStatus: async (_source, { labels, namespaces }, { dataSources }) =>
+      dataSources.prometheusAPI.getPodInfo(labels, namespaces)
   },
   PodStatus: {
-    ready:  async ({ pod }, {}, { dataSources }) =>
+    ready: async ({ pod }, {}, { dataSources }) =>
       dataSources.prometheusAPI.getPodReadiness(pod),
-    containers:  async ({ pod }, {}, { dataSources }) =>
+    containers: async ({ pod }, {}, { dataSources }) =>
       dataSources.prometheusAPI.getContainerInfo(pod),
-    initContainers:  async ({ pod }, {}, { dataSources }) =>
-      dataSources.prometheusAPI.getInitContainers(pod),
+    initContainers: async ({ pod }, {}, { dataSources }) =>
+      dataSources.prometheusAPI.getInitContainers(pod)
   }
 };
 
-// In the most basic sense, the ApolloServer can be started
-// by passing type definitions (typeDefs) and the resolvers
-// responsible for fetching the data for those types.
 const server = new ApolloServer({
   typeDefs,
   resolvers,
@@ -33,14 +32,17 @@ const server = new ApolloServer({
       prometheusAPI: new PrometheusAPI()
     };
   },
+  introspection: true,
+  playground: true,
   plugins: [responseCachePlugin()],
   cacheControl: {
     defaultMaxAge: 5
   }
 });
 
-// This `listen` method launches a web-server.  Existing apps
-// can utilize middleware options, which we'll discuss later.
-server.listen().then(({ url }: { url: string }) => {
-  console.log(`Server ready at ${url}`);
+const app = new Koa();
+server.applyMiddleware({ app, path: '/' });
+
+app.listen({ port: 4000, hostName: '0.0.0.0' }, () => {
+  logger.info(`Server ready at port 4000 ${server.graphqlPath}`);
 });

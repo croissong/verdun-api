@@ -21,9 +21,9 @@ type PodStatus @cacheControl(maxAge: 240) {
   pod: String
   namespace: String
   label_app: String
-  ready: MetricValue
+  ready: MetricValue @cacheControl(maxAge: 5)
   containers: [ContainerStatus]
-  initContainers: ContainerStatus
+  initContainers: [ContainerStatus]
 }
 
 input Label {
