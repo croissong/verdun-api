@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "apollo-datasource-rest": "^0.6.1",
-    "apollo-server-koa": "^2.8.1",
+    "apollo-server-koa": "^2.14.2",
     "apollo-server-plugin-response-cache": "^0.3.1",
     "graphql": "^14.4.2",
     "graphql-import": "^0.7.1",
